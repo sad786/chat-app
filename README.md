@@ -1,3 +1,15 @@
+# Public url for this app https://chat-app-sand-two-91.vercel.app/ 
+
+This is simple chat simulation app 
+
+# Underneath libraries or technologies used
+# websocket for realtime communication
+# soket.io and socket.io-client to establish connection between client and server
+# backend server is implemented in express.js and is deployed on render platform
+# render platform make web-services sleeps if sits idle for 15 minutes so you may face lagging connecting to server please wait in that case for server to respond
+# this is simple app not so reliable as real chat app needs further improvements
+# all the group is hardcoded already in frontend code
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
