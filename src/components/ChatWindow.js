@@ -101,8 +101,8 @@ const ChatWindow = ( { group }) =>{
     const sendMessage = () => {
         if (input.trim()){
             const message = { sender: "You", text:input,
-                 timestamp: new Date().toLocaleTimeString(),
-                  group: group.name};
+                timestamp: new Date().toLocaleTimeString(),
+                group: group.name};
             setMessages((prev) => [...prev, message]);
             socket.emit("sendMessage", message);
             setInput("");
