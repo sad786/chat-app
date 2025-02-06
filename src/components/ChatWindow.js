@@ -20,6 +20,7 @@ const ChatWindow = ( { group }) =>{
     const [reactionPicker, setReactionPicker] = useState(null);
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
     const emojiRef = useRef(null);
+    const messagesEndRef = useRef(null);
     const { darkMode } = useContext(ThemeContext);
 
     const toggleEmojiPicker = (event) => {
@@ -38,7 +39,15 @@ const ChatWindow = ( { group }) =>{
         setReactionPicker(null) // This will close picker after choosing a reaction
     };
 
+    const handleKeyPress = (e) => {
+         if (e.key === "Enter") {
+           sendMessage();
+         }
+    };
 
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [messages]);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -59,9 +68,10 @@ const ChatWindow = ( { group }) =>{
             socket.emit("leaveGroup");
 
             socket.emit("joinGroup", group.name);
-
             const handleReceiveMessage = (message) => {
-                setMessages((prev) => [...prev, message]);
+                if(message.id!==socket.id){
+                    setMessages((prev) => [...prev, message]);
+                }
             };
 
             socket.on("receiveMessage", handleReceiveMessage);
@@ -79,8 +89,10 @@ const ChatWindow = ( { group }) =>{
                 setUserCount(count);
             });
             
-            socket.on("userTyping", (status) =>{
-                setTyping(status);
+            socket.on("userTyping", (status, id) =>{
+                if(id !== socket.id){
+                    setTyping(status);
+                }
             })
             
             socket.on("disconnect", (count) =>{
@@ -93,7 +105,7 @@ const ChatWindow = ( { group }) =>{
                 socket.off("receiveReaction");
                 socket.off("userTyping");
                 socket.off("userCount");
-               socket.off("disconnect");
+                socket.off("disconnect");
             };
         }
     }, [group]);
@@ -115,31 +127,47 @@ const ChatWindow = ( { group }) =>{
         socket.emit("sendReaction", { group: group.name, messageIndex:index, reaction});
     };
     const handleTyping = (e) =>{
+        if(group===null){
+            alert("Please join a group first!")
+            return;
+        }
         setInput(e.target.value);
         socket.emit("typing", group.name);
         setTimeout(() => socket.emit("stopTyping", group.name), 2000);
     };
 
     return (
-        <Paper elevation={3} sx={{padding:2,
-                                 height: "100%",
-                                position:"relative",
-                                backgroundColor:darkMode ? '#1e1e1e': '#f5f5f5',
-                                color:darkMode ? "#fff":"#000",
-                                }}>
+        <Box elevation={3} sx={{
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            padding: "16px",
+            boxSizing: "border-box",
+            backgroundColor:darkMode ? '#1e1e1e': '#f5f5f5',
+            color:darkMode ? "#fff":"#000",
+            }}>
         
-        <Typography variant="h6">{group?.name||"select a Group"} ({userCount} online)</Typography>
+        <Typography sx = {{display:"flex", gap:"8px"}} variant="h6">{group?.name||"select a Group"} ({userCount} online)</Typography>
 
-        <Box sx={{ flexGrow:1, overflowY:"auto", maxHeight:"300px", padding: 2 }}>
+        <Box
+         sx={{
+                flexGrow: 1,
+                overflowY: "auto",
+                marginBottom: "16px",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                padding: "8px"
+            }}>
             {
                 messages.map((msg, index) => (
+                    
                     <Box
                         key={index}
                         sx={{
                             display:"flex",
                             flexDirection:"column",
                             alignItems:group.name === msg.group? "flex-end": "flex-start",
-                            marginBottom:"10px", 
+                            marginBottom:"10px",
                             position:"relative"
                         }}>
                         
@@ -201,11 +229,13 @@ const ChatWindow = ( { group }) =>{
                                 )}
                         </Box>
                 ))}
+                <div ref={messagesEndRef} />
                 {typing&&<Typography
                         variant="body2" color="gray">Someone is typing...</Typography>}
+
         </Box>
 
-        <Box sx={{ display: "flex", marginTop:2 ,alignItems:"center", position:"relative"}}>
+        <Box sx={{ display: "flex", marginTop:2 ,alignItems:"center", position:"revert-layer"}}>
             {/** Emoji Picker Button */}
             <IconButton
                  onClick={toggleEmojiPicker}>
@@ -219,13 +249,15 @@ const ChatWindow = ( { group }) =>{
 
             <TextField
                 fullWidth size="small"
+                variant = "outlined"
                 marginRight="5px"
                 placeholder="Type a message..."
                 value={input}
+                onKeyDown = {handleKeyPress}
                 onChange={handleTyping}/>
             <Button variant="contained" sx={{ m1: 1, marginLeft:"5px"}} onClick={sendMessage}>Send</Button>
         </Box>
-    </Paper>
+    </Box>
     );
 };
 
