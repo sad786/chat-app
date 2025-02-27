@@ -1,3 +1,13 @@
+#Real Time Group Chat Application
+Link https://mygroupchat.vercel.app
+
+built using socket.io a node.js websocket library 
+user needs to select a group and another user within that group can chat with.
+typing indicate feature is also implemented
+backend is deployed on render built on node.js, express.js
+it is just hobby project to show up on resume.
+improving when i have time.
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
